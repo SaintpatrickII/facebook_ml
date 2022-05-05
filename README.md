@@ -24,3 +24,18 @@ Cleaning operations:
 5. product_name includes the location of the item in the header, this information is already known in the location column so we use a str split & index the zeroth element so that product name is only the product
 
 6. category & location both contain two pieces of information, here i have split the category into an additional subcaregory column & with location it is split into county & the original location
+
+
+Images Dataset:
+
+raw images come in a variety of sizes & aspect ratios, in order to train the machine learning model firstly we will need to clean these images beforehand.Images here are modified through the PIL import & glob is used to iterate through the files within our image folder.
+
+Cleaning Operations:
+
+1. Images are formed in a for loop with an enumerate function(this makes for easy naming of the photos).
+
+2. Firstly our loop opens the image & created a black background at the specified limit of 512 x 512 pixels to be overlayed later.
+
+2. the maximum dimension of each image is found & compared to our maximum acceptable size, this is computed into a ratio factor which will transform the image to the correct size.
+
+3. Background image is overlayed with the product image, image is centred on this background & saved with the enumerate function from before
