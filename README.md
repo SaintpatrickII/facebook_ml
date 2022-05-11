@@ -46,9 +46,9 @@ Product Details Regression:
 
 - A simple model is utiliser here, using one hot encoding products are assigned into their categories paired with their price
 
--So we are going to be testing the linear dependance category of the price, so y is the price of the item & X is the category
+- So we are going to be testing the linear dependance category of the price, so y is the price of the item & X is the category
 
--As this is a very basic test as expected the model doesnt perform well at all, with a MSE of its definetly not ideal
+- As this is a very basic test as expected the model doesnt perform well at all, with a MSE of its definetly not ideal
 
 Image Multi Class Classification:
 
