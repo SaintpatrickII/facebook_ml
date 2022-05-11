@@ -39,3 +39,27 @@ Cleaning Operations:
 2. the maximum dimension of each image is found & compared to our maximum acceptable size, this is computed into a ratio factor which will transform the image to the correct size.
 
 3. Background image is overlayed with the product image, image is centred on this background & saved with the enumerate function from before
+
+2. Creating Simple Machine Learning Models:
+
+Product Details Regression:
+
+- A simple model is utiliser here, using one hot encoding products are assigned into their categories paired with their price
+
+- So we are going to be testing the linear dependance category of the price, so y is the price of the item & X is the category
+
+- As this is a very basic test as expected the model doesnt perform well at all, with a MSE of its definetly not ideal
+
+Image Multi Class Classification:
+
+- For the Images again we will be one hot encoding to catogrise products, however we will need to have. numerical value for each category for our images model
+
+- Images are opened alike before using PIL, in this current form our model has no way to analyse the image, for this we will need to transform the image into a readable format
+
+- to do this we can transform the PIL image into a pytorch Tensor, in this form we will have a three channel tensor for each image, this however is still not readable by our model.
+
+- The tensor must be flattened & turned into a flat numpy array for usage
+
+- In this form while trainable is not ideal as we lose massive amounts of information on the images that could be used in a model i.e. do pixels that are neighbors have any effect? This will be fixed at a later point using neural networks
+
+- This flattened numpy array is joined to the class number in a tuple for training in sklearn's logistic regression model with X=(no. of labels, no of features) and y = (no of labels)
