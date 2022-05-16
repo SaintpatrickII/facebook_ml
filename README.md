@@ -66,6 +66,6 @@ Image Multi Class Classification:
 
 - This model only produces an accuracy of 15% this will be drastically increased with the usage of a CNN
 
-- While making this image dataset i had tried for ages to correctly split the categories & index them into the correct tuples, this can be seen in the multiclas_logreg file, for anyone looking to mimic this, for the love of all things good just use the inbuilt sklearn LabelEncoder.
+- While making this image dataset i had tried for ages to correctly split the categories & index them into the correct tuples, this can be seen in the image_model_final file, for anyone looking to mimic this, for the love of all things good just use the inbuilt sklearn LabelEncoder.
 
 - My other main pause with this step happened when my categories were completeley unbalanced, as it turns out in my data cleaning when removing duplicate rows i had accidently removed rows which contained different pictures of the same product, always good to double check this next time :)
