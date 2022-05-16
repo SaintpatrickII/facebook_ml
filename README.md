@@ -63,3 +63,9 @@ Image Multi Class Classification:
 - In this form while trainable is not ideal as we lose massive amounts of information on the images that could be used in a model i.e. do pixels that are neighbors have any effect? This will be fixed at a later point using neural networks
 
 - This flattened numpy array is joined to the class number in a tuple for training in sklearn's logistic regression model with X=(no. of labels, no of features) and y = (no of labels)
+
+- This model only produces an accuracy of 15% this will be drastically increased with the usage of a CNN
+
+- While making this image dataset i had tried for ages to correctly split the categories & index them into the correct tuples, this can be seen in the multiclas_logreg file, for anyone looking to mimic this, for the love of all things good just use the inbuilt sklearn LabelEncoder.
+
+- My other main pause with this step happened when my categories were completeley unbalanced, as it turns out in my data cleaning when removing duplicate rows i had accidently removed rows which contained different pictures of the same product, always good to double check this next time :)
