@@ -13,11 +13,11 @@ from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score, classification_report
 
-data = '/Users/paddy/Desktop/AiCore/facebook_ml/final_dataset/image_data.csv'
+data = '/Users/paddy/Desktop/AiCore/facebook_ml/final_dataset/image_data.json'
 images = '/Users/paddy/Desktop/AiCore/facebook_ml/images_raw'
 images_corrected = '/Users/paddy/Desktop/AiCore/facebook_ml/Images'
 
-df = pd.read_csv(data)
+df = pd.read_json(data)
 
 class image_setup():
     
@@ -47,6 +47,7 @@ class image_setup():
             img_corr = image_ite.resize(img_corr_ratio)
             background.paste(img_corr, (((resized_img - img_corr_ratio[0]) // 2), ((resized_img - img_corr_ratio[1]) // 2)))
             background.save(f'{images_corrected}/{self.image_id[img]}.jpg')
+        return print('images have been resized')
 
 
     def image_to_tensor(self):
@@ -59,6 +60,7 @@ class image_setup():
             flatten_numpy = flattened.numpy()
             self.image_array.append(flatten_numpy)
             print(flatten_numpy)
+        print('images have been turned into numpy arrays')
         return self.image_array
 
 
@@ -68,6 +70,7 @@ class image_setup():
             classification = self.image_classification[i]
             image_tuple = self.image_array[i], classification
             self.list_of_tuples.append(image_tuple)
+        print('images are now in tuple form')
         return 
 
 
@@ -89,6 +92,8 @@ class image_setup():
         pred = model.predict(X_test)
         print ('accuracy:', accuracy_score(y_test, pred))
         report = ('report:', classification_report(y_test, pred))
+        print('here is the report :)', report)
         return report
 
+image_setup()
    
