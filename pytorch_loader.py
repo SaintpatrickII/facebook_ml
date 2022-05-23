@@ -22,10 +22,11 @@ class ImagesLoader(Dataset):
     def __getitem__(self, index):
         img_path = os.path.join(self.root_dir, self.read_json.iloc[index, 0])
         features = io.imread(f'{img_path}.jpg')
-        features = torch.tensor(features)
-        features = features.reshape(128, 128, 3)
-        labels = torch.tensor((self.read_json.iloc[index, 1]).astype(int))
-        labels = labels.unsqueeze(0)
+        features = torch.tensor(features).float()
+        features = features.reshape(3, 128, 128)
+        labels = torch.tensor(self.read_json.iloc[index, 1])
+        # .astype(int))
+        # labels = labels.unsqueeze(0)
         return (features, labels)
 
         # if self.transform:
