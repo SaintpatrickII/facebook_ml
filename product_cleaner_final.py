@@ -68,6 +68,7 @@ class product_cleaner():
         y = self.df_for_linear['price']
 
         X_train, X_test, y_train, y_test = model_selection.train_test_split(X, y, test_size=0.3)
+        X_test, X_val, y_test, y_val = model_selection.train_test_split(X_test, y_test, test_size=0.5)
         X_validation, X_test, y_validation, y_test = model_selection.train_test_split(
         X_test, y_test, test_size=0.5
         )

@@ -65,7 +65,7 @@ class CNN(nn.Module):
         super(CNN, self).__init__()
         self.features = models.resnet50(pretrained=True).to(device)
         for i, param in enumerate(self.features.parameters()):
-            if i < 49:
+            if i < 47:
                 param.requires_grad=False
             else:
                 param.requires_grad=True
@@ -103,7 +103,7 @@ def train_model(model, epochs):
 
             features = features.to(device)
             labels = labels.to(device)
-            features = torch.squeeze(features)
+            # features = torch.squeeze(features)
             # features = features.reshape(features.shape[0], -1)
             # print(features.shape)
             # features, labels = batch

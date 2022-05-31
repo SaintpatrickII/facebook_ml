@@ -1,5 +1,3 @@
-from cProfile import label
-from pyexpat import features
 import pandas as pd
 import os
 import torch
@@ -25,13 +23,18 @@ class ImagesLoader(Dataset):
         features = torch.tensor(features).float()
         features = features.reshape(3, 128, 128)
         labels = torch.tensor(self.read_json.iloc[index, 1])
+        features = features/255
+        # features = features.transforms.Normalize(mean=[0.485, 0.456, 0.406],
+        #                          std=[0.229, 0.224, 0.225])
         # .astype(int))
         # labels = labels.unsqueeze(0)
+        # if self.transform:
+        #     features = self.transform(features)
         return (features, labels)
 
         # if self.transform:
         #     features = self.transform(features)
-        # return tuple((features, y_label))
+        #     return(features, y_label)
 
 dataset1 = ImagesLoader()
 
