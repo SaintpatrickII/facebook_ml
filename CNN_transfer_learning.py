@@ -1,3 +1,4 @@
+#%%
 import torch
 import torch.nn as nn 
 import torch.optim as optim
@@ -40,13 +41,13 @@ class CNN(nn.Module):
             else:
                 param.requires_grad=True
         self.features.fc = nn.Sequential(
-            nn.Linear(2048, 128), # first arg is the size of the flattened output from resnet50
-            # torch.nn.ReLU(),
-            # torch.nn.Dropout(),
-            # torch.nn.Linear(1024, 512),
-            # torch.nn.ReLU(),
-            # torch.nn.Linear(1024, 512),
-            # torch.nn.ReLU(),
+            nn.Linear(2048, 1024), # first arg is the size of the flattened output from resnet50
+            torch.nn.ReLU(),
+            torch.nn.Dropout(),
+            torch.nn.Linear(1024, 512),
+            torch.nn.ReLU(),
+            torch.nn.Linear(512, 128),
+            torch.nn.ReLU(),
             torch.nn.Linear(128, 13)
             )
 
@@ -65,9 +66,6 @@ model = CNN()
 # device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 model.to(device)
 
-
-
-# print(cnn.features)
 #%%
 
 def train_model(model, epochs):
@@ -98,22 +96,15 @@ def train_model(model, epochs):
 
 train_model(model, 5)
 
-# %%
-
-#%%
-
-
-
-
 
 
 def check_accuracy(loader, model):
     if loader == train_samples:
-        # model.train()
+        model.train()
         print('Checking accuracy on training set')
     else:
         print('Checking accuracy on test set')
-        model.eval()
+        model.val()
     num_correct = 0
     num_samples = 0
     #   tells model not to compute gradients
