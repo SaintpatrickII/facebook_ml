@@ -69,3 +69,22 @@ Image Multi Class Classification:
 - While making this image dataset i had tried for ages to correctly split the categories & index them into the correct tuples, this can be seen in the image_model_final file, for anyone looking to mimic this, for the love of all things good just use the inbuilt sklearn LabelEncoder.
 
 - My other main pause with this step happened when my categories were completeley unbalanced, as it turns out in my data cleaning when removing duplicate rows i had accidently removed rows which contained different pictures of the same product, always good to double check this next time :)
+
+
+4. Creating a CNN
+
+As we saw beforehand using a simpler ML model like a logistic regression is inefficient for training on an image dataset, in order to train a model for classifying images a convolutional neural network is required. This CNN utilises progressiveley more complex hidden layers to detect patterns in classes of images. Before we can create this CNN the data must be loaded correctly.
+
+- An image loader class is created to load our images, this takes our images from a directory, converts them to tensors, sets up features & labels & introduces a transforms function which we will use to normalise pixel values
+
+- Images are split into train, validation and test sets in preprocessing
+
+- Resnet-50 is imported as the CNN to be adjusted through transfer learning, in the neural network the first 47 layers repain unfrozen meaning that as our model trains these layers weights will remain untouched.
+
+- The final three layers are unfrozen & additional layers are added to change RESNET-50's output layer of 2048 classes to the 13 in our network. as the model trains during back propergation all these layers will be adjusted to increase accuracy of predictions, a dropout layer is used here also, this is used to help with regularisation
+
+- The forward pass reshapes the tensor output into a one dimensional vector from its original feature map form
+
+- The model is trained through a series of 50 epochs, in each epoch after training we also record validation, taking accuracy and loss of both for each epoch, this is saved in a tensorboard for visulisation
+
+- After 50 epochs a final loss and final accuracy for both training & validation is taken, for this CNN the following results were obtained
