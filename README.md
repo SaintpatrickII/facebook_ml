@@ -88,3 +88,10 @@ As we saw beforehand using a simpler ML model like a logistic regression is inef
 - The model is trained through a series of 50 epochs, in each epoch after training we also record validation, taking accuracy and loss of both for each epoch, this is saved in a tensorboard for visulisation
 
 - After 50 epochs a final loss and final accuracy for both training & validation is taken, for this CNN the following results were obtained
+:
+
+![Image](/Users/paddy/Desktop/Screenshot 2022-06-07 at 10.56.23.png)
+![Image](/Users/paddy/Desktop/Screenshot 2022-06-07 at 10.59.25.png)
+![Image](/Users/paddy/Desktop/Screenshot 2022-06-07 at 10.59.40.png)
+![Image](/Users/paddy/Desktop/Screenshot 2022-06-07 at 11.02.56.png)
+![Image](/Users/paddy/Desktop/Screenshot 2022-06-07 at 11.03.08.png)
