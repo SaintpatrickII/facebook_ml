@@ -13,7 +13,7 @@ from torch.utils.tensorboard import SummaryWriter
 import torch.nn.functional as F
 
 
-products = '/Users/paddy/Desktop/AiCore/facebook_ml/nlp_fin.pkl'
+products = '/Users/paddy/Desktop/AiCore/facebook_ml/description_for_embedding.pkl'
 
 df =  pd.read_pickle(products)
 df.head
@@ -50,7 +50,7 @@ class productsPreProcessing(Dataset):
             words = self.tokenizer(description)
             words = words[:100]
             pad_length = self.max_seq_len - len(words)
-            words.extend(['<UNK>']*pad_length)
+            words.extend(['<UNK>'] * pad_length)
             tokenized_desc = self.vocab(words)
             tokenized_desc = torch.tensor(tokenized_desc)
             return tokenized_desc
@@ -80,40 +80,62 @@ class CNN(torch.nn.Module):
     def __init__(self, pretrained_weights=None):
         super().__init__()
         no_words = 26888
-        embedding_size = 16
+        embedding_size = 100
         self.embedding = torch.nn.Embedding(no_words, embedding_size)
         self.layers = torch.nn.Sequential(
             torch.nn.Conv1d(embedding_size, 32, 2),
             torch.nn.ReLU(),
             torch.nn.Conv1d(32, 64, 2),
             torch.nn.ReLU(),
-            torch.nn.Linear(98, 128),
+            torch.nn.Flatten(),
+            torch.nn.Linear(6272, 13),
             torch.nn.Softmax()
         )
 
 
     def forward(self, X):
         # print(X.shape)
-        X = self.embedding(X)
-        X = X.transpose(2, 1)
-        # print(X.shape)
-        # print(X)
-        return self.layers(X)
+        # X = self.embedding(X)
+        # print('this is shape X:', X.shape)
+        # X = torch.transpose(X, 2, 1)
+        # # print(X.shape)
+        # # print(X)
+        return self.layers(self.embedding(X))
 
 cnn = CNN()
 
 
 # example = dataset[1]
 # description, category = example
+# print('pred pre unsqueeze:', description.shape)
 # prediction = cnn(description.unsqueeze(0))
-# print(prediction)
-# print(category)
+# print('pred post unsqueeze:', prediction.shape)
+# prediction = cnn(description)
+# print('prediction is:', prediction)
+# print(prediction.shape)
+# print(prediction[0])
+# prediction
+# def flatten(t):
+#     t = t.reshape(1, -1)
+#     t = t.squeeze()
+#     # t = t.detach().numpy()
+#     return t
+# true_pred = flatten(prediction)
+# print('-'*10)
+# print(true_pred[0])
+# print('true category is:',category)
+# print(category.shape)
+# print(category.dtype)
+# print('-'*10)
+# loss = F.cross_entropy(prediction, category)
+# print(loss)
 
 
 
+#%%
 train_split = 0.7
 validation_split = 0.15
-batch_size = 64
+batch_size = 32
 
 data_size = len(dataset)
 print(f'dataset contains {data_size} Images')
@@ -135,7 +157,7 @@ def train_model(model, epochs):
     writer = SummaryWriter()
     model.train()
     print('training model')
-    optimiser = optim.SGD(model.parameters(), lr=0.01)
+    optimiser = optim.SGD(model.parameters(), lr=0.1)
     for epoch in range(epochs):
         print(f'Epoch {epoch + 1}/{epochs}')
         print('-' * 10)
@@ -147,17 +169,19 @@ def train_model(model, epochs):
             for i, (features, labels) in enumerate(phase):
                 num_correct = 0
                 num_samples = 0
-                print(features)
-                print(labels)
+                # print(features)
+                # print(labels)
+                # features = features.unsqueeze(0)
                 # features, labels = features, labels
                 # features = features.to(device)  # move to device
                 # labels = labels.to(device)
-                predict = model(features.unsqueeze(0))
+                predict = model(features)
+                # labels = labels.long()
                 # predict = predict.type(torch.LongTensor)
-                print('this is label:', labels)
-                print(labels.shape)
-                print('this is predict:', predict)
-                print(predict.shape)
+                # print('this is label:', labels)
+                # print('labels shape:',labels.shape)
+                # print('this is predict:', predict)
+                # print(predict.shape)
                 labels = labels
                 loss = F.cross_entropy(predict, labels)
                 _, preds = predict.max(1)
@@ -169,7 +193,7 @@ def train_model(model, epochs):
                 optimiser.zero_grad()
                 # writer.add_scalar('Loss', loss, epoch)
                 # writer.add_scalar('Accuracy', acc, epoch)
-                if i % 10 == 9:
+                if i % 30 == 29:
                     if phase == train_samples:
                       writer.add_scalar('Training Loss', loss, epoch)
                       writer.add_scalar(' Training Accuracy', acc, epoch)
@@ -185,5 +209,37 @@ def train_model(model, epochs):
             
 
 train_model(cnn, 50)
+
+
+
+
+
+def check_accuracy(loader, model):
+    model.eval()
+    if loader == train_samples:
+        # model.train()
+        print('Checking accuracy on training set')
+    else:
+        print('Checking accuracy on evaluation set')
+        # model.eval()
+    num_correct = 0
+    num_samples = 0
+    #   tells model not to compute gradients
+    with torch.no_grad():
+        for feature, label in loader:
+            # feature = feature.to(device)  # move to device
+            # label = label.to(device)
+            scores = model(feature)
+            _, preds = scores.max(1)
+            num_correct += (preds == label).sum()
+            num_samples += preds.size(0)
+        acc = float(num_correct) / num_samples
+        print(f'Got {num_correct} / {num_samples} with accuracy: {acc * 100}%')
+
+
+check_accuracy(train_samples, cnn)
+check_accuracy(val_samples, cnn)
+
+
 
 #%%
