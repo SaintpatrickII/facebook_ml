@@ -1,3 +1,4 @@
+#%%
 from turtle import forward
 from unicodedata import category
 import pandas as pd
@@ -18,10 +19,9 @@ products = '/Users/paddy/Desktop/AiCore/facebook_ml/description_for_embedding.pk
 df =  pd.read_pickle(products)
 df.head
 
-#%%
-# %%
 class productsPreProcessing(Dataset):
     def __init__(self):
+        
         super().__init__()
         df =  pd.read_pickle(products)
         self.descriptions = df['product_description']
@@ -30,10 +30,18 @@ class productsPreProcessing(Dataset):
         self.tokenizer = get_tokenizer('basic_english')
         self.vocab = self.get_vocab()
         self.descriptions = self.tokenize_descriptions(self.descriptions)
+    
 
+    """
+    Init:
+
+    We're reading in the dataframe, setting the descriptions and categories as attributes, setting
+    the maximum sequence length, getting the tokenizer and vocab, and tokenizing the descriptions
+    """
 
 
     def get_vocab(self):
+       
         def yield_tokens():
             for description in self.descriptions:
                 tokens = self.tokenizer(description)
@@ -43,6 +51,16 @@ class productsPreProcessing(Dataset):
         vocab = build_vocab_from_iterator(token_generator, specials=['<UNK>'])
         print('length of vocab:', len(vocab))
         return vocab
+
+
+    """
+    get_vocab:
+
+    - We create a generator that yields tokens from the descriptions.
+    - We use the `build_vocab_from_iterator` function to build the vocabulary from the generator.
+    - We return the vocabulary
+    :return: A dictionary of words and their corresponding index.
+    """
 
 
     def tokenize_descriptions(self, descriptions):
@@ -59,20 +77,42 @@ class productsPreProcessing(Dataset):
         return descriptions
 
 
+    """
+    Tokenize descriptions:
+
+    We take a dataframe of descriptions, tokenize each description, pad the tokenized descriptions
+    to the max sequence length, and return a dataframe of tokenized descriptions
+    
+    :param descriptions: a pandas series of descriptions
+    :return: A list of tokenized descriptions
+    """
+
+
     def __len__(self):
         return len(self.descriptions)
+
+
+    '''
+    __len__:
+    
+    overwrites len from Dataset Abstract class
+    '''
+
 
     def __getitem__(self, idx):
         description = self.descriptions.iloc[idx]
         category = self.categories.iloc[idx]
         return (description, category)
 
+    '''
+    __getitem__:
+    
+    overwrites __getitem__ magic method, required to be able to index items in the dataset
+    '''
 
 
 dataset = productsPreProcessing()
-
 print(dataset[2])
-#%%
 
 
 
@@ -86,6 +126,7 @@ class CNN(torch.nn.Module):
             torch.nn.Conv1d(embedding_size, 32, 2),
             torch.nn.ReLU(),
             torch.nn.Conv1d(32, 64, 2),
+            torch.nn.Dropout(),
             torch.nn.ReLU(),
             torch.nn.Flatten(),
             torch.nn.Linear(6272, 13),
@@ -93,46 +134,30 @@ class CNN(torch.nn.Module):
         )
 
 
+    '''
+    CNN initiliser:
+    
+    We have an embedding layer, which is a matrix of size 26888x100, which is the size of our
+    vocabulary. from here a CNN is built using dropout & ReLU to avoid overfitting
+    '''
+
     def forward(self, X):
-        # print(X.shape)
-        # X = self.embedding(X)
-        # print('this is shape X:', X.shape)
-        # X = torch.transpose(X, 2, 1)
-        # # print(X.shape)
-        # # print(X)
+        
         return self.layers(self.embedding(X))
+
+
+    """
+    forward: 
+
+    The function takes in a batch of sentences, passes them through the embedding layer, and then
+    passes them through the layers of the model
+    :param X: the input data
+    :return: The output of the last layer of the network.
+    """
 
 cnn = CNN()
 
 
-# example = dataset[1]
-# description, category = example
-# print('pred pre unsqueeze:', description.shape)
-# prediction = cnn(description.unsqueeze(0))
-# print('pred post unsqueeze:', prediction.shape)
-# prediction = cnn(description)
-# print('prediction is:', prediction)
-# print(prediction.shape)
-# print(prediction[0])
-# prediction
-# def flatten(t):
-#     t = t.reshape(1, -1)
-#     t = t.squeeze()
-#     # t = t.detach().numpy()
-#     return t
-# true_pred = flatten(prediction)
-# print('-'*10)
-# print(true_pred[0])
-# print('true category is:',category)
-# print(category.shape)
-# print(category.dtype)
-# print('-'*10)
-# loss = F.cross_entropy(prediction, category)
-# print(loss)
-
-
-
-#%%
 train_split = 0.7
 validation_split = 0.15
 batch_size = 32
@@ -146,42 +171,32 @@ test_size = data_size - (val_size + train_size)
 train_data, val_data, test_data = torch.utils.data.random_split(dataset, [train_size, val_size, test_size])
 
 train_samples = DataLoader(train_data, batch_size=batch_size, shuffle=True)
-val_samples = DataLoader(val_data, batch_size=batch_size)
-test_samples = DataLoader(test_data, batch_size=batch_size)
+val_samples = DataLoader(val_data, batch_size=batch_size, shuffle=True)
+test_samples = DataLoader(test_data, batch_size=batch_size, shuffle=True)
 
+'''
+Data Splitter:
 
+takes samples & splits into sample sets, using dataloader to tokenize etc
+'''
 
-
-#%%
 def train_model(model, epochs):
     writer = SummaryWriter()
     model.train()
     print('training model')
     optimiser = optim.SGD(model.parameters(), lr=0.1)
     for epoch in range(epochs):
-        print(f'Epoch {epoch + 1}/{epochs}')
-        print('-' * 10)
         for phase in [train_samples, val_samples]:
             if phase == train_samples:
                 print('training')
             else:
                 print('val')
             for i, (features, labels) in enumerate(phase):
+                if phase == 'train':
+                    torch.set_grad_enabled(phase)
                 num_correct = 0
-                num_samples = 0
-                # print(features)
-                # print(labels)
-                # features = features.unsqueeze(0)
-                # features, labels = features, labels
-                # features = features.to(device)  # move to device
-                # labels = labels.to(device)
+                num_samples = 0 
                 predict = model(features)
-                # labels = labels.long()
-                # predict = predict.type(torch.LongTensor)
-                # print('this is label:', labels)
-                # print('labels shape:',labels.shape)
-                # print('this is predict:', predict)
-                # print(predict.shape)
                 labels = labels
                 loss = F.cross_entropy(predict, labels)
                 _, preds = predict.max(1)
@@ -191,37 +206,47 @@ def train_model(model, epochs):
                 loss.backward()
                 optimiser.step()
                 optimiser.zero_grad()
-                # writer.add_scalar('Loss', loss, epoch)
-                # writer.add_scalar('Accuracy', acc, epoch)
                 if i % 30 == 29:
+                    print(f'Epoch {epoch + 1}/{epochs}')
+                    print('-' * 10)
                     if phase == train_samples:
-                      writer.add_scalar('Training Loss', loss, epoch)
-                      writer.add_scalar(' Training Accuracy', acc, epoch)
-                      print('training_loss')
+                        writer.add_scalar('Training Loss', loss, epoch)
+                        writer.add_scalar(' Training Accuracy', acc, epoch)
+                        print('training_loss')
+                        print(f'Loss: {loss:.4f} Acc: {acc*100:.1f}%')
+                        print(f'Got {num_correct} / {num_samples} with accuracy: {acc * 100}%')
                     else:
-                      writer.add_scalar('Validation Loss', loss, epoch)
-                      writer.add_scalar('Validation Accuracy', acc, epoch)
-                      print('val_loss') 
-                    # print(batch) # print every 50 mini-batches
-                    print(f'[{epoch + 1}, {i + 1:5d}] loss: {loss}')
-                    print(f'Got {num_correct} / {num_samples} with accuracy: {acc * 100}%')
-                    writer.flush()
-            
+                        writer.add_scalar('Validation Loss', loss, epoch)
+                        writer.add_scalar('Validation Accuracy', acc, epoch)
+                        print('val_loss') 
+                        # print(batch) # print every 30 mini-batches
+                        print(f'Loss: {loss:.4f} Acc: {acc*100:.1f}%')
+                        print(f'Got {num_correct} / {num_samples} with accuracy: {acc * 100}%')
+                        writer.flush()
+                
 
-train_model(cnn, 50)
+    """
+    train model:
 
+    We're training the model, and for each epoch, we're iterating through the training and validation
+    samples, and for each mini-batch, we're calculating the loss and accuracy, and then we're
+    backpropagating the loss and updating the weights. 
 
+    We're also using a SummaryWriter to write the loss and accuracy to TensorBoard.
 
+    :param model: the model we want to train
+    :param epochs: number of times to iterate over the entire dataset
+    """
+
+train_model(cnn, 100)
 
 
 def check_accuracy(loader, model):
     model.eval()
     if loader == train_samples:
-        # model.train()
         print('Checking accuracy on training set')
     else:
         print('Checking accuracy on evaluation set')
-        # model.eval()
     num_correct = 0
     num_samples = 0
     #   tells model not to compute gradients
@@ -235,6 +260,16 @@ def check_accuracy(loader, model):
             num_samples += preds.size(0)
         acc = float(num_correct) / num_samples
         print(f'Got {num_correct} / {num_samples} with accuracy: {acc * 100}%')
+
+
+    """
+    check accuracy:
+
+    It takes a data loader and a model, and checks the accuracy of the model on the data in the loader
+    for both training & validation sets
+    :param loader: the data loader for the dataset to check
+    :param model: A PyTorch Module giving the model to train
+    """
 
 
 check_accuracy(train_samples, cnn)
