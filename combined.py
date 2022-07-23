@@ -20,10 +20,11 @@ import torch
 from torch.utils.data import Dataset
 import torchvision.transforms as transforms
 from skimage import io
+from PIL import Image
+from PIL import ImageFile
 
-
-products_df = '/Users/paddy/Desktop/AiCore/facebook_ml/df_from_demo.csv'
-image_folder = '/Users/paddy/Desktop/AiCore/facebook_ml/images_raw'
+products_df = '/Users/paddy/Desktop/AiCore/facebook_ml/final_dataset/combined_final_dataset.csv'
+image_folder = '/Users/paddy/Desktop/AiCore/facebook_ml/images_for_combined/'
 
 class ImageTextDataloader(torch.utils.data.Dataset):
 
@@ -36,7 +37,7 @@ class ImageTextDataloader(torch.utils.data.Dataset):
         self.max_desc_len = max_desc_len
         self.products['category'] = self.products['category'].apply(lambda x: self.get_category(x, labels_level))
         self.descriptions = self.products['product_description']
-        self.image_id = self.products['id']
+        self.image_id = self.products['image_id']
         self.labels = self.products['category'].to_list()
         self.num_classes = len(set(self.labels))
 
@@ -45,20 +46,21 @@ class ImageTextDataloader(torch.utils.data.Dataset):
         self.decoder = {x: y for (x, y) in enumerate(set(self.labels))}
 
         if transform == None:
-            transform = transforms.Compose([
-                transforms.Resize(128),
-                transforms.Normalize(
-                mean=[0.485, 0.456, 0.406],
-                std=[0.229, 0.224, 0.225]),
+            self.transform = transforms.Compose([
                 transforms.RandomHorizontalFlip(p=0.3),
                 transforms.RandomHorizontalFlip(),
-                transforms.CenterCrop(128)
+                transforms.CenterCrop(128),
+                transforms.Resize(128),
+                transforms.ToTensor(),
+                transforms.Normalize(
+                mean=[0.485, 0.456, 0.406],
+                std=[0.229, 0.224, 0.225])
                 ])
 
 
         self.tokenizer = get_tokenizer('basic_english')
         self.vocab = self.get_vocab()
-        self.descriptions = self.tokenize_descriptions(self.descriptions)
+        # self.descriptions = self.tokenize_descriptions(self.descriptions)
 
         assert len(self.descriptions) == len(self.labels) == len(self.image_id)
     
@@ -72,7 +74,7 @@ class ImageTextDataloader(torch.utils.data.Dataset):
         token_generator = yield_tokens()
 
         vocab = build_vocab_from_iterator(token_generator, specials=['<UNK>'])
-        print('length of vocab:', len(vocab))
+        # print('length of vocab:', len(vocab))
         return vocab
 
 
@@ -86,7 +88,8 @@ class ImageTextDataloader(torch.utils.data.Dataset):
             tokenized_desc = torch.tensor(tokenized_desc)
             return tokenized_desc
 
-        descriptions = descriptions.apply(tokenize_description)
+        descriptions = tokenize_description(descriptions)
+        # .apply(tokenize_description)
         return descriptions
 
 
@@ -98,20 +101,22 @@ class ImageTextDataloader(torch.utils.data.Dataset):
         label = self.labels[index]
         label = self.encoder[label]
         label = torch.as_tensor(label)
-        print(self.products.iloc[index, 0])
-        image = os.path.join(self.root_dir, (self.products.iloc[index, 0].astype(str)))
-        image = torch.tensor(image).float()
+        image = Image.open(self.root_dir + (self.products.iloc[index, 1] + '.jpg'))
         # print(image)
-        image = io.imread(f'{image}.jpg')
         image = self.transform(image)
-        description = self.descriptions[index]
-        # encoded = self.tokenizer.batch_encode_plus([sentence], max_length=self.max_length, padding='max_length', truncation=True)
+        # print('this is image', image)
+        sentence = self.descriptions[index]
+        # print(sentence)
+        encoded = self.tokenize_descriptions(sentence)
+        # print(encoded)
+        description = encoded
+        # encoded = self.tokenize_descriptions(sentence)
         # encoded = {key:torch.LongTensor(value) for key, value in encoded.items()}
         # with torch.no_grad():
         #     description = self.model(**encoded).last_hidden_state.swapaxes(1,2)
 
         # description = description.squeeze(0)
-
+        # return (image, label)
         return image, description, label
 
 
@@ -123,17 +128,18 @@ class ImageTextDataloader(torch.utils.data.Dataset):
 
 
 if __name__ == '__main__':
-    dataset = ImageTextDataloader(Image_dir='/Users/paddy/Desktop/AiCore/facebook_ml/Images', csv_file='/Users/paddy/Desktop/AiCore/facebook_ml/df_from_demo.csv')
-    # print(dataset[2500])
-    # print(dataset.decoder[int(dataset[2500][2])])
+    dataset = ImageTextDataloader(Image_dir=image_folder, csv_file=products_df)
+    print(dataset[3000])
+    print(dataset.decoder[int(dataset[3000][2])])
     dataloader = torch.utils.data.DataLoader(dataset, batch_size=12,
                                              shuffle=True, num_workers=1)
     for i, (image, description, labels) in enumerate(dataloader):
         print(image)
+        print(description)
         print(labels)
-        print(description.size())
+        # print(description.size())
         print(image.size())
         if i == 0:
             break
-
+# /Users/paddy/Desktop/AiCore/facebook_ml/Images/0a3267c5-b660-4bef-9915-56b11cd67d8b.jpg
 #%%
