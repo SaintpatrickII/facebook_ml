@@ -24,6 +24,7 @@ import torch
 from torch.utils.data import Dataset
 from skimage import io
 import torchvision.transforms as transforms
+import pickle
 
 
 products_df = '/Users/paddy/Desktop/AiCore/facebook_ml/final_dataset/combined_final_dataset.csv'
@@ -74,8 +75,8 @@ device = get_default_device()
 class TextClassifier(torch.nn.Module):
     def __init__(self, pretrained_weights=None):
         super().__init__()
-        no_words = 26888
-        embedding_size = 100
+        no_words = 28381
+        embedding_size = 50
         self.embedding = torch.nn.Embedding(no_words, embedding_size)
         self.layers = torch.nn.Sequential(
             torch.nn.Conv1d(embedding_size, 32, 2),
@@ -84,7 +85,7 @@ class TextClassifier(torch.nn.Module):
             torch.nn.Dropout(),
             torch.nn.ReLU(),
             torch.nn.Flatten(),
-            torch.nn.Linear(6272, 128)
+            torch.nn.Linear(3072, 128)
         )
 
 
@@ -166,25 +167,16 @@ def train_model(model, epochs, optimiser):
         print(f'Epoch {epoch + 1}/{epochs}')
         print('-' * 10)
         model.train()
-        for phase in dataset_ite:
-            model.train()
-            #   if phase == train_samples:
-            #     model.train()
-            #     print('training')
-            #   else:
-            #     model.eval()
-            #     print('val')
-            #     print(phase)
-
-        for i, (image_features, text_features, labels) in enumerate(phase):
+        for i, (image_features, text_features, labels) in dataset_ite:
         # with torch.set_grad_enabled(phase == train_samples):
         #   optimiser.zero_grad()
             num_correct = 0
             num_samples = 0
-            features, labels = (image_features, text_features), labels
-            features = features.to(device)  # move to device
+            # features, labels = image_features, text_features, labels
+            image_features = image_features.to(device)
+            text_features = text_features.to(device)  # move to device
             labels = labels.to(device)
-            predict = model(features)
+            predict = model(image_features, text_features)
             labels = labels
             loss = F.cross_entropy(predict, labels)
             
@@ -211,8 +203,8 @@ def train_model(model, epochs, optimiser):
             print(f'[{epoch + 1}, {i + 1:5d}] loss: {loss:.5f}')
             print(f'Got {num_correct} / {num_samples} with accuracy: {(acc * 100):.2f}%')
             writer.flush()
-        
-              
+            
+                
               
               
             #   if scheduler != None and phase == train_samples:
@@ -255,9 +247,12 @@ def check_accuracy(loader, model):
 if __name__ == '__main__':
     train_model(model, 50, optimiser_ft)
     check_accuracy(dataset, model)
-# check_accuracy(val_samples, model)
-
-
-
 
 # %%
+
+
+    # model_save_name = 'combined.pt'
+    # path = f"'/Users/paddy/Desktop/AiCore/facebook_ml/'{model_save_name}" 
+    # torch.save(model.state_dict(), path)
+    # with open('combined_decoder.pkl', 'wb') as f:
+    #     pickle.dump(dataset.decoder, f)

@@ -75,7 +75,7 @@ class ImageTextDataloader(torch.utils.data.Dataset):
         token_generator = yield_tokens()
 
         vocab = build_vocab_from_iterator(token_generator, specials=['<UNK>'])
-        # print('length of vocab:', len(vocab))
+        print('length of vocab:', len(vocab))
         return vocab
 
 
@@ -118,7 +118,7 @@ class ImageTextDataloader(torch.utils.data.Dataset):
 
         # description = description.squeeze(0)
         # return (image, label)
-        return (image, description), label
+        return image, description, label
 
 
 
@@ -130,19 +130,20 @@ class ImageTextDataloader(torch.utils.data.Dataset):
 
 if __name__ == '__main__':
     dataset = ImageTextDataloader()
-#     dataloader = torch.utils.data.DataLoader(dataset, batch_size=12,shuffle=True, num_workers=1)
+    dataloader = torch.utils.data.DataLoader(dataset, batch_size=12,shuffle=True, num_workers=1)
     
-#     print(dataset[3000])
+    # print(dataset[3000])
+    # print('-'*10)
     # print(dataset.decoder[int(dataset[3000][2])])
     # dataloader = torch.utils.data.DataLoader(dataset, batch_size=12,
     #                                          shuffle=True, num_workers=1)
-    # for i, (image, description, labels) in enumerate(dataloader):
-    #     print(image)
-    #     print(description)
-    #     print(labels)
-    #     # print(description.size())
-    #     print(image.size())
-    #     if i == 0:
-    #         break
+    for i, (image, description, labels) in enumerate(dataloader):
+        print(image)
+        print(description)
+        print(labels)
+        # print(description.size())
+        print(image.size())
+        if i == 0:
+            break
 # /Users/paddy/Desktop/AiCore/facebook_ml/Images/0a3267c5-b660-4bef-9915-56b11cd67d8b.jpg
 #%%
