@@ -156,103 +156,74 @@ dataloader = dataloader = torch.utils.data.DataLoader(dataset, batch_size=32 ,sh
 
 
 
-def train_model(model, epochs, optimiser):
+def train_model(model, epochs):
+# optimiser):
 # scheduler
     writer = SummaryWriter()
     print('training model')
-    # dataset = ImageTextDataloader(Image_dir=image_folder, csv_file=products_df, transform=None)
     dataset_ite = tqdm(enumerate(dataloader))
-    # optimiser = optim.SGD(model.parameters(), lr=0.01)
+    optimiser = optim.SGD(model.parameters(), lr=0.01)
     for epoch in range(epochs):
         print(f'Epoch {epoch + 1}/{epochs}')
         print('-' * 10)
-        model.train()
         for i, (image_features, text_features, labels) in dataset_ite:
-        # with torch.set_grad_enabled(phase == train_samples):
-        #   optimiser.zero_grad()
+            model.train()
             num_correct = 0
             num_samples = 0
-            # features, labels = image_features, text_features, labels
             image_features = image_features.to(device)
             text_features = text_features.to(device)  # move to device
             labels = labels.to(device)
             predict = model(image_features, text_features)
             labels = labels
+
+
             loss = F.cross_entropy(predict, labels)
-            
-            
             _, preds = predict.max(1)
             num_correct += (preds == labels).sum()
             num_samples += preds.size(0)
             acc = float(num_correct) / num_samples
             loss.backward()
             optimiser.step()
-            
-            # writer.add_scalar('Loss', loss, epoch)
-            # writer.add_scalar('Accuracy', acc, epoch)
-            
+            optimiser.zero_grad()
+
+
             if i % 10 == 9:
                 writer.add_scalar('Training Loss', loss, epoch)
                 writer.add_scalar(' Training Accuracy', acc, epoch)
                 print('training_loss')
-            # else:
-            #     writer.add_scalar('Validation Loss', loss, epoch)
-            #     writer.add_scalar('Validation Accuracy', acc, epoch)
-            #     print('val_loss') 
-            # print(batch) # print every 50 mini-batches
-            print(f'[{epoch + 1}, {i + 1:5d}] loss: {loss:.5f}')
-            print(f'Got {num_correct} / {num_samples} with accuracy: {(acc * 100):.2f}%')
-            writer.flush()
-            
-                
-              
-              
-            #   if scheduler != None and phase == train_samples:
-            #         scheduler.step()
+                print(f'[{epoch + 1}, {i + 1:5d}] loss: {loss:.5f}')
+                print(f'Got {num_correct} / {num_samples} with accuracy: {(acc * 100):.2f}%')
+                writer.flush()
+
+
+    model_save_name = 'combined.pt'
+    path = f"/Users/paddy/Desktop/AiCore/facebook_ml/{model_save_name}" 
+    torch.save(model.state_dict(), path)
+    with open('combined_decoder.pkl', 'wb') as f:
+        pickle.dump(dataset.decoder, f)
                     
-                    
-optimiser_ft = optim.SGD(model.parameters(), lr=0.01, momentum=0.9)   
-# exp_lr_scheduler = lr_scheduler.CosineAnnealingWarmRestarts(optimiser_ft, T_0=10, eta_min=0.00001)    
-
-
-#  exp_lr_scheduler)
-
-# %tensorboard --logdir runs
-
-def check_accuracy(loader, model):
-    model.eval()
-    if loader == dataset:
-        # model.train()
-        print('Checking accuracy on training set')
-    else:
-        print('Checking accuracy on evaluation set')
-        # model.eval()
-    num_correct = 0
-    num_samples = 0
-    #   tells model not to compute gradients
-    with torch.no_grad():
-        for feature, label in loader:
-            feature = feature.to(device)  # move to device
-            label = label.to(device)
-            scores = model(feature)
-            _, preds = scores.max(1)
-            num_correct += (preds == label).sum()
-            num_samples += preds.size(0)
-        acc = float(num_correct) / num_samples
-        print(f'Got {num_correct} / {num_samples} with accuracy: {acc * 100}%')
-      
-        
-
-
 if __name__ == '__main__':
-    train_model(model, 50, optimiser_ft)
-    check_accuracy(dataset, model)
+    train_model(model, 50)
+    # optimiser_ft)
+    # check_accuracy(dataset, model)
+    model_save_name = 'combined.pt'
+    path = f"/Users/paddy/Desktop/AiCore/facebook_ml/{model_save_name}" 
 
 # %%
 
 
-    # model_save_name = 'combined.pt'
-    # path = f"'/Users/paddy/Desktop/AiCore/facebook_ml/'{model_save_name}" 
-    # torch.save(model.state_dict(), path)
-    # with open('combined_decoder.pkl', 'wb') as f:
-    #     pickle.dump(dataset.decoder, f)
+
+
+# def check_accuracy(loader, model):
+#     model.eval()
+#     print('Checking accuracy on training set')
+#     with torch.no_grad():
+#         for feature, label in loader:
+#             feature = feature.to(device)  # move to device
+#             label = label.to(device)
+#             scores = model(feature)
+#             _, preds = scores.max(1)
+#             num_correct += (preds == label).sum()
+#             num_samples += preds.size(0)
+#         acc = float(num_correct) / num_samples
+#         print(f'Got {num_correct} / {num_samples} with accuracy: {acc * 100}%')
